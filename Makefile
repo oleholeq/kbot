@@ -5,18 +5,6 @@ DOCKER_REGISTRY ?= ghcr.io
 TARGET_TAG = ${VERSION}-${detected_OS}-${detected_arch}
 detected_OS ?= $(shell go env GOOS)
 detected_arch ?= $(shell go env GOARCH)
-	
-format:
-	gofmt -s -w ./
-
-get:
-	go get
-
-lint:
-	golint
-
-test:
-	go test -v
 
 build: format get
 	@printf "$GDetected OS/ARCH: $R$(detected_OS)/$(detected_arch)$D\n"
