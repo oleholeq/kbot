@@ -49,4 +49,6 @@ push:
 	docker push ${DOCKER_REGISTRY}/${REGESTRY}/${APP}:${TARGET_TAG} 
 	
 clean:
-	rm -rf kbot
+	@rm -rf kbot; \
+	IMG1=$$(docker images -q | head -n 1); \
+	if [ -n "$${IMG1}" ]; then  docker rmi -f $${IMG1}; else printf "$RImage not found$D\n"; fi
