@@ -1,7 +1,6 @@
 A Telegram bot 
 Required Go packages:
     github.com/spf13/cobra
-    github.com/stianeikeland/go-rpio
     gopkg.in/telebot.v4
 
 
