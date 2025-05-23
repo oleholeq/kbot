@@ -37,6 +37,14 @@ push:
 	docker push ${DOCKER_REGISTRY}/${REGESTRY}/${APP}:${TARGET_TAG} 
 	
 clean:
-	@rm -rf kbot; \
-	IMG1=$$(docker images -q | head -n 1); \
-	if [ -n "$${IMG1}" ]; then  docker rmi -f $${IMG1}; else printf "$RImage not found$D\n"; fi
+	@rm -f kbot kbot.exe
+	@CONTAINER_ID=$$(docker ps -aq --filter ancestor=${IMAGE_TAG}); \
+	if [ -n "$$CONTAINER_ID" ]; then \
+		docker stop $$CONTAINER_ID; \
+		docker rm $$CONTAINER_ID; \
+	fi
+	@if docker image inspect ${IMAGE_TAG} > /dev/null 2>&1; then \
+		docker rmi -f ${IMAGE_TAG}; \
+	else \
+		echo "✅ No image ${IMAGE_TAG} to remove."; \
+	fi
