@@ -4,10 +4,13 @@ ARG TARGETARCH
 
 
 FROM quay.io/projectquay/golang:1.21 as builder
+ARG TARGETOS
+ARG TARGETARCH
+
 WORKDIR /go/src/app
 COPY . .
-RUN make $name
 
+RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} make build
 
 FROM scratch
 WORKDIR /
