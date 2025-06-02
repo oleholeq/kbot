@@ -1,50 +1,46 @@
-APP=$(shell basename $(shell git remote get-url origin) .git)
-VERSION=$(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)
-REGESTRY ?= oleholeq
-DOCKER_REGISTRY ?= ghcr.io
-TARGET_TAG = ${VERSION}-${detected_OS}-${detected_arch}
-detected_OS ?= $(shell go env GOOS)
-detected_arch ?= $(shell go env GOARCH)
+APP := $(shell basename -s .git $(shell git remote get-url origin))
+REGISTRY := ghcr.io/oltsy77
+VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")-$(shell git rev-parse --short HEAD)
 
-build:
-	@printf "$GDetected OS/ARCH: $R$(detected_OS)/$(detected_arch)$D\n"
-	CGO_ENABLED=0 GOOS=$(detected_OS) GOARCH=$(detected_arch) go build -v -o kbot -ldflags "-X="github.com/${REGESTRY}/kbot/cmd.appVersion=${VERSION}
+TARGETOS ?= darwin
+TARGETARCH ?= arm64
 
-linux:
-	@printf "$GTarget OS/ARCH: $Rlinux/$(detected_arch)$D\n"
-	CGO_ENABLED=0 GOOS=linux GOARCH=$(detected_arch) go build -v -o kbot -ldflags "-X="github.com/${REGESTRY}/kbot/cmd.appVersion=${VERSION}
-	docker build --build-arg name=linux -t ${DOCKER_REGISTRY}/${REGESTRY}/${APP}:${TARGET_TAG} .
 
-windows:
-	@printf "$GTarget OS/ARCH: $Rwindows/$(detected_arch)$D\n"
-	CGO_ENABLED=0 GOOS=windows GOARCH=$(detected_arch) go build -v -o kbot -ldflags "-X="github.com/${REGESTRY}/kbot/cmd.appVersion=${VERSION}
-	docker build --build-arg name=windows -t ${DOCKER_REGISTRY}/${REGESTRY}/${APP}:${TARGET_TAG} .
+format:
+	gofmt -s -w ./
 
-darwin:
-	@printf "$GTarget OS/ARCH: $Rdarwin/$(detected_arch)$D\n"
-	CGO_ENABLED=0 GOOS=darwin GOARCH=$(detected_arch) go build -v -o kbot -ldflags "-X="github.com/${REGESTRY}/kbot/cmd.appVersion=${VERSION}
-	docker build --build-arg name=darwin -t ${DOCKER_REGISTRY}/${REGESTRY}/${APP}:${TARGET_TAG}) .
+get:
+	go get ./
 
-arm:
-	@printf "$GTarget OS/ARCH: $R$(detected_OS)/arm$D\n"
-	CGO_ENABLED=0 GOOS=$(detected_OS) GOARCH=arm go build -v -o kbot -ldflags "-X="github.com/${REGESTRY}/kbot/cmd.appVersion=${VERSION}
-	docker build --build-arg name=arm -t ${DOCKER_REGISTRY}/${REGESTRY}/${APP}:${TARGET_TAG}.
+lint:
+	go vet ./
 
-image: build
-	docker build . -t ${DOCKER_REGISTRY}/${REGESTRY}/${APP}:${TARGET_TAG}
+test:
+	go test -v ./
+
+build: format get
+	CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -v -o kbot -ldflags "-X=github.com/oltsy77/kbot/cmd.appVersion=${VERSION}"
+
+image:
+	docker build . -t $(REGISTRY)/$(APP):$(VERSION)-$(TARGETARCH) \
+		--build-arg TARGETARCH=$(TARGETARCH) \
+		--build-arg VERSION=$(VERSION)
 
 push:
-	docker push ${DOCKER_REGISTRY}/${REGESTRY}/${APP}:${TARGET_TAG} 
-	
+	docker push ${REGISTRY}/${APP}:${VERSION}-${TARGETARCH}
+
+linux:
+	$(MAKE) TARGETOS=linux TARGETARCH=amd64 image
+
+arm:
+	$(MAKE) TARGETOS=linux TARGETARCH=arm64 image
+
+macos:
+	$(MAKE) TARGETOS=darwin TARGETARCH=arm64 image
+
+windows:
+	$(MAKE) TARGETOS=windows TARGETARCH=amd64 image
+
 clean:
-	@rm -f kbot kbot.exe
-	@CONTAINER_ID=$$(docker ps -aq --filter ancestor=${IMAGE_TAG}); \
-	if [ -n "$$CONTAINER_ID" ]; then \
-		docker stop $$CONTAINER_ID; \
-		docker rm $$CONTAINER_ID; \
-	fi
-	@if docker image inspect ${IMAGE_TAG} > /dev/null 2>&1; then \
-		docker rmi -f ${IMAGE_TAG}; \
-	else \
-		echo "✅ No image ${IMAGE_TAG} to remove."; \
-	fi
+	rm -f kbot
+	docker rmi -f ${REGISTRY}/${APP}:${VERSION}-${TARGETARCH} || true
