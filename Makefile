@@ -1,5 +1,5 @@
 APP := $(shell basename -s .git $(shell git remote get-url origin))
-REGISTRY := ghcr.io/oltsy77
+REGISTRY := ghcr.io/oleholeq
 VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")-$(shell git rev-parse --short HEAD)
 
 TARGETOS ?= darwin
