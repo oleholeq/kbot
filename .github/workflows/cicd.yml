@@ -32,7 +32,7 @@ jobs:
               with:
                 registry: ${{ env.REGISTRY }}
                 username: oleholeq
-                password: ${{ secrets.GITHUB_TOKEN }}
+                password: ${{ secrets.GHCR_PAT }}
             
             - name: Build and push image
               env:
