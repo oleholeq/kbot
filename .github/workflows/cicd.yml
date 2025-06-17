@@ -37,4 +37,4 @@ jobs:
             - name: Build and push image
               env:
                 APP: "kbot"
-                run: make image push
+              run: make image push
