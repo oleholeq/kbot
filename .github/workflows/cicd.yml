@@ -53,8 +53,7 @@ jobs:
 
       - name: Set version
         run: |
-          RAW_TAG=$(git describe --tags --abbrev=0)
-          VERSION="kbot-v${RAW_TAG#kbot-}-$(git rev-parse --short HEAD)-${{ env.TARGETARCH }}"
+          VERSION="v$(git describe --tags --abbrev=0 | sed 's/^v//')-$(git rev-parse --short HEAD)-${{ env.TARGETOS }}-${{ env.TARGETARCH }}"
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Final version: $VERSION"
 
