@@ -52,7 +52,10 @@ jobs:
           fetch-depth: 0
 
       - name: Set version
-        run: echo "VERSION=$(git describe --tags --abbrev=0 --always)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+        run: |
+          VERSION="v$(git describe --tags --abbrev=0 | sed 's/^v//')-$(git rev-parse --short HEAD)-${{ env.TARGETARCH }}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Final version: $VERSION"
 
       - name: Update values.yaml with yq
         uses: mikefarah/yq@master
