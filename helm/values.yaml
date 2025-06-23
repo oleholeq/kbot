@@ -8,7 +8,7 @@ replicaCount: 1
 image:
   registry: "ghcr.io"
   repository: oleholeq/kbot
-  tag: kbot-1.0.0-9cf1783-linux-amd64
+  tag: kbot-1.0.0-3f9b45b
   arch: amd64
   os: linux
 secret:
