@@ -1,0 +1,70 @@
+name: KBot CI/CD
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  REGISTRY: ghcr.io
+  TARGETOS: linux
+  TARGETARCH: amd64
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Run tests
+        run: make test
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: oleholeq
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Build and push image
+        env:
+          APP: "kbot"
+        run: make image push
+
+  cd:
+    name: CD
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set version
+        run: |
+          VERSION="v$(git describe --tags --abbrev=0 | sed 's/^kbot-//')-$(git rev-parse --short HEAD)"  
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Final version: $VERSION"
+
+      - name: Update values.yaml with yq
+        uses: mikefarah/yq@master
+        with:
+          cmd: yq -i '.image.tag = strenv(VERSION)' helm/values.yaml
+
+      - name: Commit and push changes
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git commit -am "update version $VERSION"
+          git push
