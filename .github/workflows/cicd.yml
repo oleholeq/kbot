@@ -53,14 +53,14 @@ jobs:
 
       - name: Set version
         run: |
-          VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')-$(git rev-parse --short HEAD)-${{ env.TARGETOS }}-${{ env.TARGETARCH }}"    
+          VERSION="$(git describe --tags --abbrev=0)-$(git rev-parse --short HEAD)"    
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Final version: $VERSION"
 
       - name: Update values.yaml with yq
         uses: mikefarah/yq@master
         with:
-          cmd: yq -i '.image.tag=strenv(VERSION) | .image.os=strenv(TARGETOS) | .image.arch=strenv(TARGETARCH)' helm/values.yaml
+          cmd: yq -i '.image.tag = strenv(VERSION)' helm/values.yaml
 
       - name: Commit and push changes
         run: |
