@@ -53,7 +53,7 @@ jobs:
 
       - name: Set version
         run: |
-          VERSION="v$(git describe --tags --abbrev=0 | sed 's/^v//')-$(git rev-parse --short HEAD)-${{ env.TARGETOS }}-${{ env.TARGETARCH }}"
+          VERSION="$(git describe --tags --abbrev=0 | sed 's/^v//')-$(git rev-parse --short HEAD)-${{ env.TARGETOS }}-${{ env.TARGETARCH }}"    
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Final version: $VERSION"
 
